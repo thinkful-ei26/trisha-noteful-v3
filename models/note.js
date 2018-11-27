@@ -7,7 +7,7 @@ const noteSchema = new mongoose.Schema({
   content : String
 });
 
-//Add `createdAt` and `updatedAt` and `updatedAt` fields
+//Add `createdAt` and `updatedAt`fields
 noteSchema.set('timestamps', true);
 
 module.exports = mongoose.model('Note', noteSchema);
