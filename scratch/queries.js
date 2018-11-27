@@ -27,6 +27,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser:true })
     console.error(err);
   });
 
+
 /* Find note by id using Note.findById */
 
 Note.findById('000000000000000000000003')
@@ -63,3 +64,18 @@ Note.findByIdAndRemove('000000000000000000000003')
     console.log('Removed a note');
   })
   .catch(err => console.error(err));
+
+/* Find notes by search term */
+
+const searchTerm = 'dogs';
+const re = new RegExp(searchTerm, 'i');
+
+Note.find(
+
+  {$or : 
+    [
+      { title: re},
+      {content : re}
+    ]
+  }
+);
