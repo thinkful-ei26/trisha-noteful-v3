@@ -71,7 +71,6 @@ const searchTerm = 'dogs';
 const re = new RegExp(searchTerm, 'i');
 
 Note.find(
-
   {$or : 
     [
       { title: re},

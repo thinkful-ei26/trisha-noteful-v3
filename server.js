@@ -43,15 +43,6 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Listen for incoming connections
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, function () {
-    console.info(`Server listening on ${this.address().port}`);
-  }).on('error', err => {
-    console.error(err);
-  });
-}
-
 // Connect to DB and Listen for incoming connections
 mongoose.connect(MONGODB_URI, { useNewUrlParser:true })
   .catch(err => {
@@ -60,10 +51,13 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser:true })
     console.error(err);
   });
 
-app.listen(PORT, function () {
-  console.info(`Server listening on ${this.address().port}`);
-}).on('error', err => {
-  console.error(err);
-});
+// Listen for incoming connections
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, function () {
+    console.info(`Server listening on ${this.address().port}`);
+  }).on('error', err => {
+    console.error(err);
+  });
+}
 
 module.exports = app; // Export for testing
