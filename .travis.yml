@@ -1,4 +1,11 @@
 language: node_js
 node_js: node
-services: 
-  - mongodb
+services:
+- mongodb
+deploy:
+  provider: heroku
+  api_key:
+    secure: g8m863SAqVnNGKznIr5NPGUCYvJg0EfV3DNqDkhrX+4py1uuZcaGlROfr2/73X3OqTfvZrHtXw93fgOIb2uyxteZ2dTK/h9Ow9F4DYK3XrzqfYHhgYpwz1F9xxSj+6m1/5sqWcDIuJeJhxFi6aBR/uX9Bq92ahGV2QiKkgaG/icPsHFDOStsBGfpEDL7exk26KdhHL+36ihOavxhYXAY7KcHE+nY68OzF0WmV/bLjsgaELNBkPkU17zteOal6WR6oHpjLXMqK63UOESTus1nYXmnBvsjOEwslGlnKW3i+OrJV+N8CvnjF7ZQGG68zd9DrvkZVaFpqJ1bHo7NxJEc8fuA2TOA/QjVyS0zD880Xwd0HHk+l3XI7PHJA51N6P2cb5Nccr9lEEsCmqOmjaCb3WKKJpnZSdKstqXI21K7Pn9Yp8vkCj+hU6tQei4+A7NubiuZJz3ypIQ1qDJUtLvuhaQkr6AXNU9M3IOWnQbxB6zwt93G00kuj+TNvZ0+ukb2htnQDv6FdyiZ0TuIIIcZUGPA5DpAXG/WE1Yg0S7W7B1wVsnZf0+2SY3dAWlFugNy1AkKjJZYy+/nW008iflzGRbGeTAa4Ot7csog6Y92kI88Nbdx1Mz1yLByEZQO4sFN+WT2bVDGepB9KXnh8N4xjk6A91p5pSb9izs0vX1jn90=
+  app: tranquil-badlands-11593
+  on:
+    repo: thinkful-ei26/trisha-noteful-v3
