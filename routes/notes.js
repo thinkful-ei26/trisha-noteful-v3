@@ -1,21 +1,12 @@
 'use strict';
 
 const express = require('express');
+const mongoose = require('mongoose');
 const Note = require('../models/note');
 
 const router = express.Router();
 
 /* ========== GET/READ ALL ITEMS ========== */
-// router.get('/', (req, res, next) => {
-
-//   console.log('Get All Notes');
-//   res.json([
-//     { id: 1, title: 'Temp 1' },
-//     { id: 2, title: 'Temp 2' },
-//     { id: 3, title: 'Temp 3' }
-//   ]);
-
-// });
 
 router.get('/', (req, res, next) => {
 
@@ -24,6 +15,10 @@ router.get('/', (req, res, next) => {
 
   if (searchTerm) {
     filter.title = { $regex: searchTerm, $options: 'i' };
+
+    // Mini-Challenge: Search both `title` and `content`
+    // const re = new RegExp(searchTerm, 'i');
+    // filter.$or = [{ 'title': re }, { 'content': re }];
   }
 
   Note.find(filter)
@@ -35,12 +30,10 @@ router.get('/', (req, res, next) => {
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
 
-  // console.log('Get a Note');
-  // res.json({ id: 1, title: 'Temp 1' });
+  // const noteId = req.params.id;
+  const { id } = req.params;
 
-  const noteId = req.params.id;
-
-  Note.findById(noteId)
+  Note.findById(id)
     .then( result => res.json(result))
     .catch( err => next(err));
 
