@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get('/', (req, res, next) => {
 
-  const { searchTerm } = req.query;
+  const { searchTerm, folderId } = req.query;
   let filter = {};
 
   if (searchTerm) {
@@ -21,6 +21,10 @@ router.get('/', (req, res, next) => {
     // filter.$or = [{ 'title': re }, { 'content': re }];
   }
 
+  if (folderId) {
+    filter.folderId =  folderId;
+  }
+
   Note.find(filter)
     .sort({ updatedAt: 'desc' })
     .then(results => res.json(results))
@@ -29,9 +33,14 @@ router.get('/', (req, res, next) => {
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
-
   // const noteId = req.params.id;
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
 
   Note.findById(id)
     .then( result => res.json(result))
@@ -41,17 +50,22 @@ router.get('/:id', (req, res, next) => {
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
-
-  const { title, content } = req.body;
-
-  const newNote = { title, content };
+  const { title, content, folderId } = req.body;
 
   /***** Never trust users - validate input *****/
   if (!title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
+  }  
+  
+  if (!folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
+    const err = new Error('The `folderId` is not valid');
+    err.status = 400;
+    return next(err);
   }
+
+  const newNote = { title, content, folderId };
 
   Note.create(newNote)
     .then(result => {
@@ -77,22 +91,17 @@ router.put('/:id', (req, res, next) => {
 
   const updatedNote = { title, content };
 
-  Note.findByIdAndUpdate(id, updatedNote, { new: true, upsert: true })
-    .then(result => res.json(result))
-    .catch( err => next(err));
-
-  // /* Go over the difference: */
-  // Note.findByIdAndUpdate(id, updateNote, { new: true })
-  //   .then(result => {
-  //     if (result) {
-  //       res.json(result);
-  //     } else {
-  //       next();
-  //     }
-  //   })
-  //   .catch(err => {
-  //     next(err);
-  //   });
+  Note.findByIdAndUpdate(id, updatedNote, { new: true })
+    .then(result => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 
 });
 
