@@ -17,26 +17,102 @@ router.get('/', (req, res, next) => {
     .catch(err => next(err));
 });
 
-/* ========== GET/READ A SINGLE ITEM ========== */
+/* ========== GET/READ A SINGLE FOLDER ========== */
 
 router.get('/:id', (req, res, next) => {
 
   const { id } = req.params;
 
-  //validate user input
-  if(id)
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
+  Folder.findById(id)
+    .then( result => {
+      if (result) {
+        res.status = 200;
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => next(err));
 });
 
-/* ========== POST/CREATE AN ITEM ========== */
+/* ========== POST/CREATE A FOLDER ========== */
 
-// router.post();
+router.post('/', (req, res, next) => {
+  const { name } = req.body;
+
+  /***** Never trust users - validate input *****/
+  if (!name) {
+    const err = new Error('Missing `name` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  const newFolder = { name };
+
+  Folder.create(newFolder)
+    .then(result => {
+      res.location(`${req.originalUrl}/${result.id}`)
+        .status(201)
+        .json(result);
+    })
+    .catch(err => {
+      next(err);
+    });
+
+});
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 
-//router.put();
+router.put('/:id', (req, res, next) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  /***** Never trust users - validate input *****/
+  if (!name) {
+    const err = new Error('Missing `name` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  const updatedFolder = { name };
+  
+  Folder.findByIdAndUpdate(id, updatedFolder, { new: true })
+    .then(result => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
+});
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
 
-// router.delete();
+router.delete('/:id', (req, res, next) => {
+  const { id } = req.params;
+
+  /***** Never trust users - validate input *****/
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
+  Folder.findByIdAndRemove(id)
+    .then(() => {
+      res.sendStatus(204).end(); 
+    })
+    .catch(err => next(err));
+
+});
 
 module.exports = router;
