@@ -9,7 +9,7 @@ const { TEST_MONGODB_URI } = require('../config');
 
 const Note = require('../models/note');
 
-const { notes } = require('../db/seed/notes');
+const { notes } = require('../db/seed/data');
 
 const expect = chai.expect;
 chai.use(chaiHttp);
@@ -18,7 +18,7 @@ describe('Noteful API resource', function (){
 
   // we need each of these hook functions to return a promise
   // otherwise we'd need to call a `done` callback. `runServer`,
-  // `seedRestaurantData` and `tearDownDb` each return a promise,
+  // `seedNotesData` and `tearDownDb` each return a promise,
   // so we return the value returned by these function calls.
   before(function () {
     return mongoose.connect(TEST_MONGODB_URI)
@@ -95,7 +95,7 @@ describe('Noteful API resource', function (){
           expect(res).to.be.json;
 
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'folderId','updatedAt');
 
           // 3) then compare database results to API response
           expect(res.body.id).to.equal(data.id);
@@ -156,7 +156,7 @@ describe('Noteful API resource', function (){
           // console.log(res);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'folderId','updatedAt');
           // 2) then call the database
           return Note.findById(res.body.id);
         })
