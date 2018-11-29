@@ -42,15 +42,9 @@ router.get('/:id', (req, res, next) => {
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
 
-  // console.log('Create a Note');
-  // res.location('path/to/new/document').status(201).json({ id: 2, title: 'Temp 2' });
-
   const { title, content } = req.body;
 
-  const newNote = {
-    title,
-    content
-  };
+  const newNote = { title, content };
 
   /***** Never trust users - validate input *****/
   if (!title) {
@@ -70,10 +64,8 @@ router.post('/', (req, res, next) => {
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
 
-  // console.log('Update a Note');
-  // res.json({ id: 1, title: 'Updated Temp 1' });
-
-  const notesId = req.params.id;
+  // const noteId = req.params.id;
+  const { id } = req.params;
   const { title, content } = req.body; //updateable fields
 
   /***** Never trust users - validate input *****/
@@ -83,25 +75,43 @@ router.put('/:id', (req, res, next) => {
     return next(err);
   }
 
-  const updatedNote = {
-    title,
-    content
-  };
+  const updatedNote = { title, content };
 
-  Note.findByIdAndUpdate(notesId, updatedNote, { new: true, upsert: true })
+  Note.findByIdAndUpdate(id, updatedNote, { new: true, upsert: true })
     .then(result => res.json(result))
     .catch( err => next(err));
+
+  // /* Go over the difference: */
+  // Note.findByIdAndUpdate(id, updateNote, { new: true })
+  //   .then(result => {
+  //     if (result) {
+  //       res.json(result);
+  //     } else {
+  //       next();
+  //     }
+  //   })
+  //   .catch(err => {
+  //     next(err);
+  //   });
 
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
 router.delete('/:id', (req, res, next) => {
 
-  const noteId = req.params.id;
+  // const noteId = req.params.id;
+  const { id } = req.params;
 
-  Note.findByIdAndRemove(noteId)
+  /***** Never trust users - validate input *****/
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
+  Note.findByIdAndRemove(id)
     .then(() => {
-      res.sendStatus(204);
+      res.sendStatus(204).end(); 
     })
     .catch(err => next(err));
 });
