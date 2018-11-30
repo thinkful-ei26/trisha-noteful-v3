@@ -131,49 +131,90 @@ describe('Folder API resources', () => {
     } */
     it('should respond with 404 for an ID not existing', () => {
       return chai.request(app)
-        .get('/api/folders/A11111111111111111111100')
+        .get('/api/folders/A11111111111111111111100') //you could also put in the 12 byte string "DOESNOTEXIST" 
         .then(res => {
           expect(res).to.have.status(404);
           expect(res.body.message).to.eq('Not Found');
         });
     });
-
   });
 
-  describe('POST /api/folders', function () {
-    it('should create and return a new folder when provided valid data', function () {
-      const newFolder = {
-        'name': 'newFolderName'
-      };
+  describe('POST /api/folders', () => {
+    it('should create and return a new folder when provided valid data', () => {
+      const newFolder = { 'name': 'newFolderName' };
 
-      let res;
+      let body;
       // 1) First, call the API
       return chai.request(app)
         .post('/api/folders')
         .send(newFolder)
-        .then(function (_res) {
-          res = _res;
+        .then((res) => {
+          body = res.body; //this has to be the res.body previously I had just res (which is an array of objects with a lot of stuff I don't need)
           expect(res).to.have.status(201);
           expect(res).to.have.header('location');
           expect(res).to.be.json;
-          expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'name', 'createdAt', 'updatedAt');
+          expect(body).to.be.a('object');
+          expect(body).to.have.keys('id', 'name', 'createdAt', 'updatedAt');
           // 2) then call the database
-          return Folder.findById(res.body.id);
+          return Folder.findById(body.id); //return this so it's accessible for the next promise
         })
         // 3) then compare the API response to the database results
-        .then(data => {
-          expect(res.body.id).to.equal(data.id);
-          expect(res.body.name).to.equal(data.name);
-          expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
-          expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
-          expect(res.body.content).to.equal(data.content);
+        .then(data => {  //data comes from database from previous promise .then
+          expect(body.id).to.equal(data.id);
+          expect(body.name).to.equal(data.name);
+          expect(new Date(body.createdAt)).to.eql(data.createdAt);
+          expect(new Date(body.updatedAt)).to.eql(data.updatedAt);
+          // expect(res.body.content).to.equal(data.content); duh there's no content in folders
+        });
+    });
+
+    // ADD ERROR TESTS
+    /* 
+    1) missing name 
+      {
+        "status": 400,
+        "message": "Missing `name` in request body"
+      }
+    2) duplicate name
+      {
+        "status": 400,
+        "message": "The folder name already exists"
+      }
+    */
+    
+    it('should return 400 error if missing name in request body', () => {
+      const newFolder = { 'notValid': 'POST folder test' };
+      return chai.request(app)
+        .post('/api/folders')
+        .send(newFolder)
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('object');
+          expect(res.body.message).to.equal('Missing `name` in request body');
+        });
+    });
+
+    it('should return 400 error if duplicate folder name', () => {
+      //you need a series of .then 
+      return Folder.findOne()
+        .then( data => {
+          const newFolder = { 'name' : data.name };
+          return chai.request(app)
+            .post('/api/folders')
+            .send(newFolder);
+        })
+        .then( res => {
+          expect(res).to.have.status(400);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('object');
+          expect(res.body.message).to.equal('The folder name already exists');
         });
     });
   });
 
-  describe('PUT /api/folders', function () {
-    it('should update fields you send over', function () {
+  describe('PUT /api/folders', () => {
+    it('should update fields you send over', () => {
       const updateData = {
         'id': '5c00680530cf5324df8ffa71',
         'name': 'updated name'
@@ -183,7 +224,7 @@ describe('Folder API resources', () => {
       // 1) First, call the API
       return Folder
         .findOne()
-        .then(function(_folder) {
+        .then((_folder) => {
           updateData.id = _folder.id;
 
           // make request then inspect it to make sure it reflects
