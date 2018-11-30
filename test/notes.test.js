@@ -157,8 +157,8 @@ describe('Notes API resource', () => {
 
   });
    
-  describe('GET /api/notes/:id', function () {
-    it('should return correct note', function () {
+  describe('GET /api/notes/:id', () => {
+    it('should return correct note', () => {
       let data;
       // 1) First, call the database
       return Note.findOne()
@@ -185,7 +185,7 @@ describe('Notes API resource', () => {
 
     /* *** omg when is it going to end? *** */
 
-    it('should respond with status 400 and an error message when `id` is not valid', function () {
+    it('should respond with status 400 and an error message when `id` is not valid',  () => {
       return chai.request(app)
         .get('/api/notes/NOT-A-VALID-ID')
         .then(res => {
@@ -194,7 +194,7 @@ describe('Notes API resource', () => {
         });
     });
 
-    it('should respond with a 404 for an id that does not exist', function () {
+    it('should respond with a 404 for an id that does not exist', () => {
       // The string "DOESNOTEXIST" is 12 bytes which is a valid Mongo ObjectId
       return chai.request(app)
         .get('/api/notes/DOESNOTEXIST')
@@ -205,9 +205,9 @@ describe('Notes API resource', () => {
 
   });
 
-  describe('POST /api/notes', function () {
+  describe('POST /api/notes', () => {
 
-    it('should create and return a new item when provided valid data', function () {
+    it('should create and return a new item when provided valid data',  () => {
       const newItem = {
         'title': 'The best article about cats ever!',
         'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...'
@@ -217,7 +217,7 @@ describe('Notes API resource', () => {
       return chai.request(app)
         .post('/api/notes')
         .send(newItem)
-        .then(function (_res) {
+        .then( (_res) => {
           res = _res;
           expect(res).to.have.status(201);
           expect(res).to.have.header('location');
@@ -237,7 +237,7 @@ describe('Notes API resource', () => {
         });
     });
 
-    it('should return an error when missing "title" field', function () {
+    it('should return an error when missing "title" field', () => {
       const newItem = {
         'content': 'Lorem ipsum dolor sit amet, sed do eiusmod tempor...'
       };
@@ -256,13 +256,14 @@ describe('Notes API resource', () => {
   });
 
 
-  describe('PUT /api/notes', function () {
-    it('should update fields you send over', function () {
+  describe('PUT /api/notes', () => {
+
+    it('should update fields you send over', () => {
       const updateData = {
-        'id': '000000000000000000000000',
+        // 'id': '000000000000000000000000',
         'title': 'updated title',
         'content': 'updated content.',
-        'folderId': '111111111111111111111100'
+        // 'folderId': '111111111111111111111100'
       };
 
       let res;
@@ -293,11 +294,65 @@ describe('Notes API resource', () => {
           expect(res.body.id).to.equal(data.id);
           expect(res.body.title).to.equal(data.title);
           expect(res.body.content).to.equal(data.content);
-          // expect(res.body.folderId).to.equal(data.folderId);
           expect(new Date(res.body.createdAt)).to.eql(data.createdAt);
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
+
+    /* insert error tests below */
+
+    it('should respond with status 400 and an error message when `id` is not valid',  () => {
+      const updateNote = {
+        'title': 'Updated Note Title',
+        'content': 'Sup dude. Testing Sux!'
+      };
+      return chai.request(app)
+        .put('/api/notes/NOT-A-VALID-ID')
+        .send(updateNote)
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.eq('The `id` is not valid'); //again you could use .equal here 
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    });
+
+    it('should respond with a 404 for an id that does not exist', () => {
+      // The string "DOESNOTEXIST" is 12 bytes which is a valid Mongo ObjectId
+      const updateNote = {
+        'title': 'Updated Note Title',
+        'content': 'Hello again from notes.test.js. Testing Sux!'
+      };
+      return chai.request(app)
+        .put('/api/notes/DOESNOTEXIST')
+        .send(updateNote)
+        .then(res => {
+          expect(res).to.have.status(404);
+        });
+    });
+
+    it('should return an error when missing "title" field', () => {
+      const updateNote = {
+        'content': 'Well hello from notes.test.js line 337'
+      };
+      let data;
+      return Note.findOne()
+        .then(_data => {
+          data = _data;
+
+          return chai.request(app)
+            .put(`/api/notes/${data.id}`)
+            .send(updateNote);
+        })
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('object');
+          expect(res.body.message).to.equal('Missing `title` in request body');
+        });
+    });
+
   });
 
   describe('DELETE /api/notes', () => {
@@ -322,5 +377,4 @@ describe('Notes API resource', () => {
     });
   });
 
- 
 });
