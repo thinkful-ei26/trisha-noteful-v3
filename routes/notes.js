@@ -79,6 +79,12 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
+  if(!tags) {
+    const err = new Error('Missing `tags` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
   tags.forEach( (tag) => {
     if(tag && !mongoose.Types.ObjectId.isValid(tag)) {
       const err = new Error('The `tags` id is not valid');
@@ -105,14 +111,12 @@ router.post('/', (req, res, next) => {
   */
 
   //this checks that if folderId exists then make the newId = folderId , if you didn't require the folderId on the noteSchema
-  // if(folderId) {
-  //   newNote.folderId = folderId;
-  // }
-
+ 
   if(folderId === '') {
     newNote.folderId = null;
     // delete newNote.folderId;
   }
+
 
   Note.create(newNote)
     .then(result => {
@@ -144,6 +148,12 @@ router.put('/:id', (req, res, next) => {
   if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
     const err = new Error('The `folderId` is not valid');
     err.status = 400;
+    return next(err);
+  }
+
+  if(!tags) {
+    const err = new Error('Missing `tags` in request body');
+    err.status = 404;
     return next(err);
   }
 
