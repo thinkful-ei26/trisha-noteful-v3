@@ -214,9 +214,10 @@ describe('Folder API resources', () => {
   });
 
   describe('PUT /api/folders', () => {
+
     it('should update fields you send over', () => {
       const updateData = {
-        'id': '5c00680530cf5324df8ffa71',
+        // 'id': '5c00680530cf5324df8ffa71',
         'name': 'updated name'
       };
 
@@ -248,8 +249,53 @@ describe('Folder API resources', () => {
           expect(res.body.id).to.equal(data.id);
           expect(res.body.name).to.equal(data.name);
           expect(res.body.content).to.equal(data.content);
+          // console.log(res.body);
+          // console.log(data);
+          expect(new Date(res.body.createdAt)).to.deep.equal(data.createdAt);
+          // expect item to have been updated
+          /* looks like my update is replacing all fields of the object including createdAt */
+          // expect(new Date(res.body.updatedAt)).to.greaterThan(data.updatedAt);
         });
     });
+
+    it('should return 400 error when missing "name" field', () => {
+      const updateData = {}; //send an empty req.body
+      let data;
+      return Folder.findOne()
+        .then(_data => {
+          data = _data;
+          return chai.request(app)
+            .put(`/api/folders/${data.id}`)
+            .send(updateData);
+        })
+        .then( res => {
+          expect(res).to.have.status(400);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('object');
+          expect(res.body.message).to.equal('Missing `name` in request body');
+        });
+    });
+
+    it('should return 400 error when given duplicate name', () => {
+      // 1) Find two folders and set one folder name to the other to create a duplicate name
+      return Folder.find().limit(2)
+        .then( results => {
+          const [folder1, folder2] = results;
+          folder1.name = folder2.name;
+          // 2) make a put request to deliberately get an error
+          // Note: please return this so it's accessible for next promise
+          return chai.request(app)
+            .put(`/api/folders/${folder1.id}`)
+            .send(folder1);
+        })
+        .then( res => {
+          expect(res).to.have.status(400);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('object');
+          expect(res.body.message).to.equal('The folder name already exists');
+        });
+    });
+
   });
 
   describe('DELETE /api/notes', () => {
