@@ -43,7 +43,14 @@ router.get('/:id', (req, res, next) => {
   }
 
   Note.findById(id)
-    .then( result => res.json(result))
+    .populate('folderId')
+    .then( result => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
     .catch( err => next(err));
 
 });
@@ -79,16 +86,28 @@ router.put('/:id', (req, res, next) => {
 
   // const noteId = req.params.id;
   const { id } = req.params;
-  const { title, content } = req.body; //updateable fields
+  const { title, content, folderId } = req.body; //updateable fields
 
   /***** Never trust users - validate input *****/
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error('The `id` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
   if (!title) { 
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
 
-  const updatedNote = { title, content };
+  if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
+    const err = new Error('The `folderId` is not valid');
+    err.status = 400;
+    return next(err);
+  }
+
+  const updatedNote = { title, content, folderId };
 
   Note.findByIdAndUpdate(id, updatedNote, { new: true })
     .then(result => {
