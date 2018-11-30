@@ -2,7 +2,9 @@
 
 const express = require('express');
 const mongoose = require('mongoose');
+
 const Folder = require('../models/folder');
+const Note = require('../models/note');
 
 const router = express.Router();
 
@@ -46,14 +48,14 @@ router.get('/:id', (req, res, next) => {
 router.post('/', (req, res, next) => {
   const { name } = req.body;
 
+  const newFolder = { name };
+
   /***** Never trust users - validate input *****/
   if (!name) {
     const err = new Error('Missing `name` in request body');
     err.status = 400;
     return next(err);
   }
-
-  const newFolder = { name };
 
   Folder.create(newFolder)
     .then(result => {
@@ -122,11 +124,30 @@ router.delete('/:id', (req, res, next) => {
     return next(err);
   }
 
+  // this will unset the notes to go back to folders 'All'
   Folder.findByIdAndRemove(id)
     .then(() => {
-      res.sendStatus(204).end(); 
+      return Note.updateMany(
+        {folderId : id},
+        { $unset : { folderId : ''}}
+      );
+    })
+    .then(() => {
+      res.sendStatus(204);
     })
     .catch(err => next(err));
+
+  //if you want to delete the notes inside the folder
+  // Folder.findByIdAndRemove(id)
+  //   .then(() => {
+  //     return Note.deleteMany(
+  //       {folderId : id}
+  //     );
+  //   })
+  //   .then(() => {
+  //     res.sendStatus(204);
+  //   })
+  //   .catch(err => next(err));
 
 });
 
