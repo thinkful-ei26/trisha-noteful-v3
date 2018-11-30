@@ -12,7 +12,7 @@ const router = express.Router();
 router.get('/', (req, res, next) => {
 
   Tag.find()
-    .sort({ name: 'asc' })
+    // .sort({ name: 'asc' })
     .then( results => res.json(results))
     .catch(err => next(err));
 });
@@ -60,7 +60,7 @@ router.post('/', (req, res, next) => {
     })
     .catch(err => {
       if (err.code === 11000) {
-        err = new Error('The folder name already exists');
+        err = new Error('The tag name already exists');
         err.status = 400;
       }
       next(err);
@@ -100,7 +100,7 @@ router.put('/:id', (req, res, next) => {
     })
     .catch(err => {
       if (err.code === 11000) {
-        err = new Error('The folder name already exists');
+        err = new Error('The tag name already exists');
         err.status = 400;
       }
       next(err);

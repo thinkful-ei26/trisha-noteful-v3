@@ -162,6 +162,8 @@ router.put('/:id', (req, res, next) => {
     updatedNote.$unset = {folderId : ''};
   }
 
+  // IF tags is NULL in the update body what happens? You should get an error
+
   Note.findByIdAndUpdate(id, updatedNote, { new: true })
     .then(result => {
       if (result) {
