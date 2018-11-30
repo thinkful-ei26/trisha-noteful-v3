@@ -126,7 +126,7 @@ router.delete('/:id', (req, res, next) => {
 
   const noteUpdatePromise = Note.updateMany(
     { tags : id },
-    { $unset: { tags: ''}}
+    { $pull: { tags: id}}
   );
 
   Promise.all([tagRemovePromise, noteUpdatePromise])

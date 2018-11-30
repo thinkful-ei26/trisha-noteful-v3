@@ -20,4 +20,4 @@ tagsSchema.set('toJSON', {
   }
 });
 
-module.exports = mongoose.model('Tags', tagsSchema);
+module.exports = mongoose.model('Tag', tagsSchema);
