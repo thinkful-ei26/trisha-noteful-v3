@@ -14,39 +14,39 @@ const { notes, folders } = require('../db/seed/data');
 const expect = chai.expect;
 chai.use(chaiHttp);
 
-describe('Notes API resource', function (){
+describe('Notes API resource', () => {
 
   // we need each of these hook functions to return a promise
   // otherwise we'd need to call a `done` callback. `runServer`,
-  // `seedNotesData` and `tearDownDb` each return a promise,
+  // `/seed/data` and `tearDownDb` each return a promise,
   // so we return the value returned by these function calls.
-  before(function () {
-    return mongoose.connect(TEST_MONGODB_URI)
+  before( () => {
+    return mongoose.connect(TEST_MONGODB_URI, { useNewUrlParser : true })
       .then(() => mongoose.connection.db.dropDatabase());
   });
 
-  beforeEach(function () {
+  beforeEach( () => {
     return Promise.all([
       Note.insertMany(notes),
       Folder.insertMany(folders)
     ])
-      .then(() => {
+      .then( () => {
         return Note.createIndexes();
       });
   });
 
-  afterEach(function () {
+  afterEach( () => {
     return mongoose.connection.db.dropDatabase();
   });
 
-  after(function () {
+  after( () => {
     return mongoose.disconnect();
   });
 
-  describe('GET /api/notes', function () {
+  describe('GET /api/notes', () => {
 
-    it('should return all notes', () => {
-      // 1) Call the database **and** the API
+    it('should return the correct number of notes', () => {
+    // 1) Call the database **and** the API
     // 2) Wait for both promises to resolve using `Promise.all`
       return Promise.all([
         Note.find(),
@@ -61,11 +61,10 @@ describe('Notes API resource', function (){
         });
     });
 
-
     it('should return a list with correct fields', () => {
       return Promise.all(
         [
-          Note.find(),
+          Note.find(), //you could sort by updatedAt: .sort({ updatedAt: 'desc' })
           chai.request(app).get('/api/notes')
         ]
       )
@@ -106,6 +105,53 @@ describe('Notes API resource', function (){
             expect(item.content).to.equal(data[index].content);
             expect(item.id).to.equal(data[index].id);
           });
+        });
+    });
+
+    /* ******* useful error tests ******** */
+
+    it('should return correct search results for a searchTerm query', () => {
+      const searchTerm = 'cat';
+
+      const dbPromise = Note.find(
+        { title: { $regex: searchTerm, $options: 'i'}}
+      );
+      const apiPromise = chai.request(app)
+        .get(`/api/notes?searchTerm=${searchTerm}`);
+
+      return Promise.all([dbPromise, apiPromise])
+        .then(([data, res]) => {
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('array');
+          expect(res.body).to.have.length(data.length);
+          res.body.forEach((note, i) => {
+            expect(note).to.be.a('object');
+            expect(note).to.include.all.keys('id', 'title', 'createdAt', 'updatedAt');
+            expect(note.id).to.equal(data[i].id);
+            expect(note.title).to.equal(data[i].title);
+            expect(note.content).to.equal(data[i].content);
+            expect(new Date(note.createdAt)).to.deep.equal(data[i].createdAt);
+            expect(new Date(note.updatedAt)).to.deep.equal(data[i].updatedAt);
+          });
+        });
+    });
+
+    it('should return correct search results for a folderId query', function () {
+      let data;
+      return Folder.findOne()
+        .then((_data) => {
+          data = _data;
+          return Promise.all([
+            Note.find({ folderId: data.id }),
+            chai.request(app).get(`/api/notes?folderId=${data.id}`) //GO OVER WITH MENTOR
+          ]);
+        })
+        .then(([data, res]) => {
+          expect(res).to.have.status(200);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('array');
+          expect(res.body).to.have.length(data.length);
         });
     });
 
@@ -214,6 +260,7 @@ describe('Notes API resource', function (){
           expect(res.body.message).to.equal('Missing `title` in request body');
         });
     });
+
 
   });
 

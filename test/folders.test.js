@@ -255,6 +255,8 @@ describe('Folder API resources', () => {
           // expect item to have been updated
           /* looks like my update is replacing all fields of the object including createdAt */
           // expect(new Date(res.body.updatedAt)).to.greaterThan(data.updatedAt);
+          //this should work though:
+          expect(new Date(res.body.updatedAt)).to.deep.equal(data.updatedAt);
         });
     });
 
