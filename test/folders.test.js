@@ -300,8 +300,7 @@ describe('Folder API resources', () => {
 
   describe('DELETE /api/notes', () => {
 
-    it('should delete note by id', () => {
-
+    it('should delete note by id and respond with 204 status', () => {
       let folder;
 
       return Folder
@@ -312,11 +311,22 @@ describe('Folder API resources', () => {
         })
         .then((res) => {
           expect(res).to.have.status(204);
+          expect(res.body).to.be.empty; //added this
           return Folder.findById(folder.id);
+
+          //alternatively, you could return the count 
+          /* 
+          return Folder.countDocuments({ _id: data.id });
+          */
         })
         .then((_folder) => {
           expect(_folder).to.be.null;
         });
+      /* if you returned the count then test it:
+        .then(count => {
+          expect(count).to.equal(0);
+        });
+      */
     });
   });
 
