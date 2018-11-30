@@ -48,7 +48,7 @@ router.get('/:id', (req, res, next) => {
 
 });
 
-/* ========== POST/CREATE AN ITEM ========== */
+// /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
   const { title, content, folderId } = req.body;
 
@@ -59,7 +59,7 @@ router.post('/', (req, res, next) => {
     return next(err);
   }  
   
-  if (!folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
+  if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
     const err = new Error('The `folderId` is not valid');
     err.status = 400;
     return next(err);
@@ -72,7 +72,6 @@ router.post('/', (req, res, next) => {
       res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
     })
     .catch(err => next(err));
-
 });
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */

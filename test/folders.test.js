@@ -40,7 +40,7 @@ describe('Folder API resources', () => {
 
     it('should return all folders', () => {
       // 1) Call the database **and** the API
-    // 2) Wait for both promises to resolve using `Promise.all`
+      // 2) Wait for both promises to resolve using `Promise.all`
       return Promise.all([
         Folder.find(),
         chai.request(app).get('/api/folders')
@@ -53,8 +53,8 @@ describe('Folder API resources', () => {
           expect(res.body).to.have.length(data.length);
         });
     });
+    
   });
-
 
   describe('GET /api/folders/:id', function () {
     it('should return correct folder', function () {
