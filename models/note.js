@@ -7,7 +7,8 @@ const noteSchema = new mongoose.Schema({
   content : String, 
   folderId : {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Folder'
+    ref: 'Folder',
+    // required: true
   }
 });
 

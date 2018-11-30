@@ -65,7 +65,7 @@ router.post('/', (req, res, next) => {
     err.status = 400;
     return next(err);
   }  
-  
+
   if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
     const err = new Error('The `folderId` is not valid');
     err.status = 400;
@@ -73,6 +73,16 @@ router.post('/', (req, res, next) => {
   }
 
   const newNote = { title, content, folderId };
+
+  //this checks that if folderId exists then make the newId = folderId , if you didn't require the folderId on the noteSchema
+  // if(folderId) {
+  //   newNote.folderId = folderId;
+  // }
+
+  if(folderId === '') {
+    newNote.folderId = null;
+    // delete newNote.folderId;
+  }
 
   Note.create(newNote)
     .then(result => {
@@ -108,6 +118,11 @@ router.put('/:id', (req, res, next) => {
   }
 
   const updatedNote = { title, content, folderId };
+
+  if(folderId === '') {
+    delete updatedNote.folderId;
+    updatedNote.$unset = {folderId : ''};
+  }
 
   Note.findByIdAndUpdate(id, updatedNote, { new: true })
     .then(result => {
