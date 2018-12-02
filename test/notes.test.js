@@ -9,7 +9,8 @@ const { TEST_MONGODB_URI } = require('../config');
 
 const Note = require('../models/note');
 const Folder = require('../models/folder');
-const { notes, folders } = require('../db/seed/data');
+const Tag = require('../models/tag');
+const { notes, folders, tags } = require('../db/seed/data');
 
 const expect = chai.expect;
 chai.use(chaiHttp);
@@ -28,7 +29,10 @@ describe('Notes API resource', () => {
   beforeEach( () => {
     return Promise.all([
       Note.insertMany(notes),
-      Folder.insertMany(folders)
+      Folder.insertMany(folders),
+      Folder.createIndexes(),
+      Tag.insertMany(tags),
+      Tag.createIndexes()
     ])
       .then( () => {
         return Note.createIndexes();
@@ -64,7 +68,7 @@ describe('Notes API resource', () => {
     it('should return a list with correct fields', () => {
       return Promise.all(
         [
-          Note.find(), //you could sort by updatedAt: .sort({ updatedAt: 'desc' })
+          Note.find(), 
           chai.request(app).get('/api/notes')
         ]
       )
@@ -75,7 +79,7 @@ describe('Notes API resource', () => {
             { 
               _id: 000000000000000000000000,
               title: '5 life lessons learned from cats',
-              content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+              content: 'Lorem ipsum dolor sit amet...',
               folderId: 111111111111111111111100,
               __v: 0,
               createdAt: 2018-11-30T10:57:05.977Z,
@@ -99,7 +103,7 @@ describe('Notes API resource', () => {
           expect(res.body).to.have.length(data.length); //data.length should equal length of res.body
           res.body.forEach((item, index) => {
             expect(item).to.be.a('object');
-            expect(item).to.include.all.keys('title', 'content', 'folderId', 'createdAt', 'updatedAt', 'id');
+            expect(item).to.include.all.keys('title', 'content', 'folderId', 'createdAt', 'updatedAt', 'id', 'tags');
             //the value from the response body should equal value of the object from the database
             expect(item.title).to.equal(data[index].title);
             expect(item.content).to.equal(data[index].content);
@@ -170,9 +174,8 @@ describe('Notes API resource', () => {
         .then((res) => {
           expect(res).to.have.status(200);
           expect(res).to.be.json;
-
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'folderId','updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'folderId','updatedAt', 'tags');
 
           // 3) then compare database results to API response
           expect(res.body.id).to.equal(data.id);
@@ -182,8 +185,6 @@ describe('Notes API resource', () => {
           expect(new Date(res.body.updatedAt)).to.eql(data.updatedAt);
         });
     });
-
-    /* *** omg when is it going to end? *** */
 
     it('should respond with status 400 and an error message when `id` is not valid',  () => {
       return chai.request(app)
@@ -209,8 +210,10 @@ describe('Notes API resource', () => {
 
     it('should create and return a new item when provided valid data',  () => {
       const newItem = {
-        'title': 'The best article about cats ever!',
-        'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor...'
+        'title': 'notes.test POST!',
+        'content': 'kitty ipsum',
+        'tags' : [
+          '222222222222222222222200']
       };
       let res;
       //1) First, call the API
@@ -223,7 +226,7 @@ describe('Notes API resource', () => {
           expect(res).to.have.header('location');
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.all.keys('id', 'title', 'content', 'createdAt', 'updatedAt');
+          expect(res.body).to.have.all.keys('id', 'title', 'content', 'createdAt', 'updatedAt', 'tags');
           // 2) then call the database
           return Note.findById(res.body.id);
         })
@@ -263,6 +266,8 @@ describe('Notes API resource', () => {
         // 'id': '000000000000000000000000',
         'title': 'updated title',
         'content': 'updated content.',
+        'tags' : [
+          '222222222222222222222200']
         // 'folderId': '111111111111111111111100'
       };
 
@@ -285,7 +290,7 @@ describe('Notes API resource', () => {
           // console.log(res);
           expect(res).to.be.json;
           expect(res.body).to.be.a('object');
-          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'folderId','updatedAt');
+          expect(res.body).to.have.keys('id', 'title', 'content', 'createdAt', 'folderId','updatedAt', 'tags');
           // 2) then call the database
           return Note.findById(res.body.id);
         })

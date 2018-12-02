@@ -9,7 +9,10 @@ const noteSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Folder',
     // required: true
-  }
+  },
+  tags : [{
+    type: mongoose.Schema.Types.ObjectId, ref: 'Tag'
+  }]
 });
 
 //Add `createdAt` and `updatedAt`fields

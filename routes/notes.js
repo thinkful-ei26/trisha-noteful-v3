@@ -10,7 +10,8 @@ const router = express.Router();
 
 router.get('/', (req, res, next) => {
 
-  const { searchTerm, folderId } = req.query;
+  //add tags to the response
+  const { searchTerm, folderId, tags } = req.query;
   let filter = {};
 
   if (searchTerm) {
@@ -25,7 +26,14 @@ router.get('/', (req, res, next) => {
     filter.folderId =  folderId;
   }
 
+  //Capture the incoming tags (tag id) and conditionally add it to the database query filter
+  if (tags) {
+    filter.tags = tags;
+  }
+
   Note.find(filter)
+  //use mongoose populate method to give all property of tags array:
+    .populate('tags') // https://courses.thinkful.com/node-001v5/assignment/2.2.4
     .sort({ updatedAt: 'desc' })
     .then(results => res.json(results))
     .catch(err => next(err));
@@ -33,7 +41,6 @@ router.get('/', (req, res, next) => {
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
-  // const noteId = req.params.id;
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -43,7 +50,7 @@ router.get('/:id', (req, res, next) => {
   }
 
   Note.findById(id)
-    .populate('folderId')
+    .populate('folderId tags')
     .then( result => {
       if (result) {
         res.json(result);
@@ -57,7 +64,7 @@ router.get('/:id', (req, res, next) => {
 
 // /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
-  const { title, content, folderId } = req.body;
+  const { title, content, folderId, tags } = req.body;
 
   /***** Never trust users - validate input *****/
   if (!title) {
@@ -72,17 +79,44 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
-  const newNote = { title, content, folderId };
+  if(!tags) {
+    const err = new Error('Missing `tags` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  tags.forEach( (tag) => {
+    if(tag && !mongoose.Types.ObjectId.isValid(tag)) {
+      const err = new Error('The `tags` id is not valid');
+      err.status = 400;
+      return next(err);
+    }
+  });
+
+  const newNote = { title, content, folderId, tags };
+
+  /* 
+  body you POST in POSTMAN: 
+  NOTE HERE THAT TAGS IS JUST AN ARRAY OF STRINGS
+    {
+    "tags": [
+        "222222222222222222222200",
+        "222222222222222222222201",
+        "222222222222222222222202"
+    ],
+    "title": "new post",
+    "content": "bacon ipsum",
+    "folderId": "111111111111111111111100"
+}
+  */
 
   //this checks that if folderId exists then make the newId = folderId , if you didn't require the folderId on the noteSchema
-  // if(folderId) {
-  //   newNote.folderId = folderId;
-  // }
-
+ 
   if(folderId === '') {
     newNote.folderId = null;
     // delete newNote.folderId;
   }
+
 
   Note.create(newNote)
     .then(result => {
@@ -96,7 +130,7 @@ router.put('/:id', (req, res, next) => {
 
   // const noteId = req.params.id;
   const { id } = req.params;
-  const { title, content, folderId } = req.body; //updateable fields
+  const { title, content, folderId, tags } = req.body; //updateable fields
 
   /***** Never trust users - validate input *****/
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -117,12 +151,28 @@ router.put('/:id', (req, res, next) => {
     return next(err);
   }
 
-  const updatedNote = { title, content, folderId };
+  if(!tags) {
+    const err = new Error('Missing `tags` in request body');
+    err.status = 404;
+    return next(err);
+  }
+
+  tags.forEach( (tag) => {
+    if(tag && !mongoose.Types.ObjectId.isValid(tag)) {
+      const err = new Error('The `tags` id is not valid');
+      err.status = 400;
+      return next(err);
+    }
+  });
+
+  const updatedNote = { title, content, folderId, tags };
 
   if(folderId === '') {
     delete updatedNote.folderId;
     updatedNote.$unset = {folderId : ''};
   }
+
+  // IF tags is NULL in the update body what happens? You should get an error
 
   Note.findByIdAndUpdate(id, updatedNote, { new: true })
     .then(result => {
