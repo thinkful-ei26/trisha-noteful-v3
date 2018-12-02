@@ -2,10 +2,8 @@
 
 const express = require('express');
 const mongoose = require('mongoose');
-
 const Folder = require('../models/folder');
 const Note = require('../models/note');
-
 const router = express.Router();
 
 /* ========== GET/READ ALL ITEMS ========== */
@@ -13,9 +11,10 @@ const router = express.Router();
 router.get('/', (req, res, next) => {
 
   Folder.find()
-    .sort({ name : 'asc'})
-    .then( (results) => 
-    {res.json(results);})
+    .sort() //ascending is the default sort
+    .then( results => {
+      res.json(results);
+    })
     .catch(err => next(err));
 });
 
@@ -34,7 +33,7 @@ router.get('/:id', (req, res, next) => {
   Folder.findById(id)
     .then( result => {
       if (result) {
-        res.status = 200;
+        res.status; // 200 is default status
         res.json(result);
       } else {
         next();
@@ -46,8 +45,8 @@ router.get('/:id', (req, res, next) => {
 /* ========== POST/CREATE A FOLDER ========== */
 
 router.post('/', (req, res, next) => {
+ 
   const { name } = req.body;
-
   const newFolder = { name };
 
   /***** Never trust users - validate input *****/

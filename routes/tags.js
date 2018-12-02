@@ -12,13 +12,14 @@ const router = express.Router();
 router.get('/', (req, res, next) => {
 
   Tag.find()
-    // .sort({ name: 'asc' })
+    .sort()
     .then( results => res.json(results))
     .catch(err => next(err));
 });
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
+  
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -30,7 +31,7 @@ router.get('/:id', (req, res, next) => {
   Tag.findById(id)
     .then( result => {
       if (result) {
-        res.status = 200;
+        res.status; // 200 default
         res.json(result);
       } else {
         next();
@@ -41,8 +42,8 @@ router.get('/:id', (req, res, next) => {
 
 // /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
+  
   const { name } = req.body;
-
   const newTag = { name };
 
   /***** Never trust users - validate input *****/
@@ -71,6 +72,7 @@ router.post('/', (req, res, next) => {
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 
 router.put('/:id', (req, res, next) => {
+  
   const { id } = req.params;
   const { name } = req.body;
 
@@ -110,6 +112,7 @@ router.put('/:id', (req, res, next) => {
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
 
 router.delete('/:id', (req, res, next) => {
+  
   const { id } = req.params;
 
   /***** Never trust users - validate input *****/
@@ -126,12 +129,12 @@ router.delete('/:id', (req, res, next) => {
 
   const noteUpdatePromise = Note.updateMany(
     { tags : id },
-    { $pull: { tags: id}}
+    { $pull: { tags: id}} //$pull from mongoDB removes all instances of value/s that match the specific condition
   );
 
   Promise.all([tagRemovePromise, noteUpdatePromise])
     .then( () => {
-      res.sendStatus(204).end();
+      res.sendStatus(204).end(); //end, nothing to listen for after delete
     })
     .catch( err => next(err));
 });

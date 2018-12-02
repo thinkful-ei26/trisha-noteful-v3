@@ -146,8 +146,8 @@ const noteful = (function () {
     });
   }
 
-  function handleNoteSearchSubmit() {
-    $('.js-notes-search-form').on('submit', event => {
+  function handleNoteSearchSubmit() { //if keyup is used, "go" submit button is redundant, consider changing UI
+    $('.js-notes-search-form').on('keyup', event => {
       event.preventDefault();
 
       store.currentQuery.searchTerm = $(event.currentTarget).find('input').val();
