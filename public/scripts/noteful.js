@@ -222,9 +222,7 @@ const noteful = (function () {
     });
   }
 
-  /**
-   * FOLDERS EVENT LISTENERS AND HANDLERS
-   */
+  /* FOLDERS EVENT LISTENERS AND HANDLERS */
   function handleFolderClick() {
     $('.js-folders-list').on('click', '.js-folder-link', event => {
       event.preventDefault();
@@ -289,9 +287,7 @@ const noteful = (function () {
     });
   }
 
-  /**
-   * TAGS EVENT LISTENERS AND HANDLERS
-   */
+  /* TAGS EVENT LISTENERS AND HANDLERS */
   function handleTagClick() {
     $('.js-tags-list').on('click', '.js-tag-link', event => {
       event.preventDefault();
