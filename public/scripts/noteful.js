@@ -51,9 +51,7 @@ const noteful = (function () {
     });
   }
 
-  /**
-   * GENERATE HTML FUNCTIONS
-   */
+  /* GENERATE HTML FUNCTIONS */
   function generateNotesList(list = [], currNote) {
     const listItems = list.map(item => `
       <li data-id="${item.id}" class="js-note-element ${currNote.id === item.id ? 'active' : ''}">
@@ -106,9 +104,7 @@ const noteful = (function () {
     return notes.join('');
   }
 
-  /**
-   * HELPERS
-   */
+  /* HELPERS */
   function getNoteIdFromElement(item) {
     const id = $(item).closest('.js-note-element').data('id');
     return id;
@@ -128,9 +124,7 @@ const noteful = (function () {
     return tags ? tags.map(tag => tag.name).join(', ') : '';
   }
 
-  /**
-   * NOTES EVENT LISTENERS AND HANDLERS
-   */
+  /*  NOTES EVENT LISTENERS AND HANDLERS */
   function handleNoteItemClick() {
     $('.js-notes-list').on('click', '.js-note-link', event => {
       event.preventDefault();
@@ -160,7 +154,6 @@ const noteful = (function () {
         .catch(handleErrors);
     });
   }
-
 
   function handleNoteFormSubmit() {
     $('.js-note-edit-form').on('submit', function (event) {
@@ -381,8 +374,8 @@ const noteful = (function () {
 
   // This object contains the only exposed methods from this module:
   return {
-    render: render,
-    bindEventListeners: bindEventListeners,
+    render,
+    bindEventListeners
   };
 
 }());
